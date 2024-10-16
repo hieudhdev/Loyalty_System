@@ -1,23 +1,74 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { UserRepository } from './repositories/user.repository';
-import { PrismaService } from 'src/database/prisma.service';
-import { ConflictException } from '@nestjs/common';
+import { 
+    Req,
+    Res,
+    ConflictException,
+    NotFoundException,
+    BadRequestException
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
+import { Request, Response } from 'express';
+import { Role } from 'src/entities/role.entity';
+import { LoyaltyPoint } from 'src/entities/loyalty-point.entity';
+import { UserRole } from 'src/entities/user-role.entity';
 
 @Injectable()
 export class UsersService {
 
     constructor(
-        private UserRepository: UserRepository,
-        private prisma: PrismaService
+        @InjectRepository(User) 
+        private readonly userRepository: Repository<User>,
+        @InjectRepository(LoyaltyPoint)
+        private readonly pointRepository: Repository<LoyaltyPoint>,
+        @InjectRepository(UserRole)
+        private readonly userRoleRepository: Repository<UserRole>,
+        @InjectRepository(Role)
+        private readonly roleRepository: Repository<Role>
     ) {}
 
-    async create (createUserDto: CreateUserDto): Promise<any> {
+    async findUserByEmail(email: string): Promise<User> {
+        let user: User;
+        try {
+            user = await this.userRepository.findOneBy({ email })
+        } catch (err) {
+            throw new NotFoundException('User not found')
+        }
+        return user
+    }
+
+    async findUserById(id: number): Promise<User> {
+        let user: User;
+
+        try {
+            user = await this.userRepository.findOne({ 
+                where: { id },
+                select: ['id', 'first_name', 'last_name', 'phone_number', 'email', 'is_active']
+            })
+        } catch (err) {
+            throw new NotFoundException('User not found')
+        }
+        return user
+    }
+
+    async getRoleByUserId(userId: number): Promise<any> {
+        const userRoles = this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.userRoles', 'userRole')
+            .leftJoinAndSelect('userRole.role', 'role')
+            .where('user.id = :id', { id: userId })
+            .getOne();
+
+        return userRoles
+    }
+
+    async create (createUserDto: CreateUserDto): Promise<User> {
         // check email existed?
-        let email: string | null = null;
         if (createUserDto.email) {
-            const foundUser = await this.UserRepository.findUserByEmail(createUserDto.email)
+            const foundUser = await this.userRepository.findOneBy({email: createUserDto.email})
             if (foundUser) throw new ConflictException('Email already exists!')
         }
 
@@ -27,16 +78,38 @@ export class UsersService {
             passwordHash = await bcrypt.hash(createUserDto.password, 10);
         }
         
-        return await this.prisma.user.create({
-            data: {
-                email: createUserDto.email,
-                name: createUserDto.name,
-                password: passwordHash,
-                phoneNumber: createUserDto.phoneNumber || null,
-                role: createUserDto.role,
-            }
+        // new user
+        const newUser = this.userRepository.create({
+            email: createUserDto.email,
+            first_name: createUserDto.firstName,
+            last_name: createUserDto.lastName,
+            password: passwordHash,
+            phone_number: createUserDto.phoneNumber || null,
+            is_active: true,
+        });
+        const newUserSaved = await this.userRepository.save(newUser);
+
+        // find role = user
+        const foundRole = await this.roleRepository.findOne({
+            where: { name: "user"}
+        })
+        if (!foundRole) throw new NotFoundException('Role not found')
+
+        // create userRole (role for user)
+        const newUserRole = this.userRoleRepository.create({
+            user: newUser,
+            role: foundRole
         }) 
-        
+        await this.userRoleRepository.save(newUserRole)
+
+        // create point
+        const newUserPoint = this.pointRepository.create({
+            total_points: 0,
+            user: newUser
+        })
+        await this.pointRepository.save(newUserPoint)
+
+        return newUserSaved
     }
 
 }

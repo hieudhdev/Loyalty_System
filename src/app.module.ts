@@ -2,12 +2,28 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppDataSource } from './database/configs/database.config';
+import { User } from './entities/user.entity';
+import { PointModule } from './point/point.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
-  imports: [AuthModule, DatabaseModule, UsersModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env', 
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => AppDataSource.options,
+    }),
+    AuthModule,  
+    UsersModule, PointModule, TransactionModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {}

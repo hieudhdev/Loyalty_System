@@ -2,25 +2,19 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersService } from 'src/users/users.service';
-import { UserRepository } from 'src/users/repositories/user.repository';
-import { PrismaService } from 'src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from 'src/users/users.module';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true, 
-      envFilePath: '.env',
-    }),
+    UsersModule, 
   ],
   providers: [
     AuthService, 
-    PrismaService, 
-    UsersService, 
-    UserRepository, 
     JwtService,
   ],
-  controllers: [AuthController]
+  controllers: [AuthController],
+  exports: []
 })
 export class AuthModule {}

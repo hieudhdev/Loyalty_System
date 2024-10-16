@@ -1,4 +1,5 @@
 import { 
+    Res,
     Controller,
     Body,
     Post,
@@ -9,6 +10,7 @@ import { AuthService } from './auth.service';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthEmailRegisterDto } from './dto/auth-email-register.dto'
 import { LoginResponseDto } from './dto/login-response.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +25,7 @@ export class AuthController {
 
     @Post('email/login')
     @HttpCode(HttpStatus.OK)
-    public login(@Body() loginDto: AuthEmailLoginDto): Promise<LoginResponseDto> {
-        return this.service.emailLogin(loginDto)
+    public login(@Body() loginDto: AuthEmailLoginDto, @Res({passthrough: true}) res: Response): Promise<LoginResponseDto> {
+        return this.service.emailLogin(loginDto, res)
     }
 }
