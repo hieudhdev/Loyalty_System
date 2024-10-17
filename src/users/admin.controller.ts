@@ -67,4 +67,22 @@ export class AdminController {
         return await this.pointService.getPointHistoryByUserId(getPointHistoryDto, userId)    
     }
 
+    @UseGuards(AuthGuard, RolesGuard)
+    @Get('transaction-system')
+    @Roles(Role.Admin)
+    @HttpCode(HttpStatus.FOUND)
+    async getTransactionSystem (@Query() getTransactionDto: GetTransactionsDto): Promise<any> {
+
+        return await this.transactionService.getTransactionSystem(getTransactionDto)    
+    }
+
+    @UseGuards(AuthGuard, RolesGuard)
+    @Get('point-system')
+    @Roles(Role.Admin)
+    @HttpCode(HttpStatus.FOUND)
+    async getPointHistorySystem (@Query() getPointHistoryDto: GetPointHistoryDto): Promise<any> {
+
+        return await this.pointService.getPointHistorySystem(getPointHistoryDto)    
+    }
+
 }

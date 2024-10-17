@@ -53,4 +53,44 @@ export class TransactionService {
         return transactions
     }
 
+    async getTransactionSystem (getTransactionsDto: GetTransactionsDto): Promise<any> {
+        const { startDate = null, endDate = null, order = "DESC" } = getTransactionsDto
+        let transactions: any
+
+        try {
+            const query = this.transactionRepository
+            .createQueryBuilder('transaction')
+            .leftJoinAndSelect('transaction.user', 'user')
+            .leftJoinAndSelect('transaction.transactionType', 'transactionType')
+
+            if (startDate && endDate) {
+                query.andWhere('transaction.created_at BETWEEN :startDate AND :endDate', {
+                    startDate,
+                    endDate,
+                });
+            } else if (startDate) {
+                query.andWhere('transaction.created_at >= :startDate', { startDate });
+            } else if (endDate) {
+                query.andWhere('transaction.created_at <= :endDate', { endDate });
+            }
+
+            transactions = await query.orderBy('transaction.created_at', order)
+            .select([
+                'user.first_name', 
+                'user.last_name',
+                'transaction.id', 
+                'transaction.amount', 
+                'transaction.created_at',
+                'transactionType.name',
+                'transactionType.description'
+            ])
+            .getMany()
+        } catch (error) {
+            console.error(error)
+            throw new BadRequestException('Cannot get transactions system')
+        }
+
+        return transactions
+    }
+
 }
