@@ -15,6 +15,7 @@ import { Request, Response } from 'express';
 import { Role } from 'src/entities/role.entity';
 import { LoyaltyPoint } from 'src/entities/loyalty-point.entity';
 import { UserRole } from 'src/entities/user-role.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -110,6 +111,20 @@ export class UsersService {
         await this.pointRepository.save(newUserPoint)
 
         return newUserSaved
+    }
+
+    async updateProfileByUserId (updateUserDto: UpdateUserDto, id: number): Promise<User>{
+        let userUpdate: User
+        try {
+            userUpdate = await this.userRepository.save({
+                id,
+                ...updateUserDto
+            })
+        } catch (err) {
+
+        }
+
+        return userUpdate
     }
 
 }

@@ -24,6 +24,7 @@ import { GetPointHistoryDto } from 'src/point/dto/get-point-history.dto';
 import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { GetTransactionsDto } from 'src/transaction/dto/get-transactions.dto'
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UsersController {
@@ -42,6 +43,16 @@ export class UsersController {
         let userId = req.user.id;
 
         return await this.userService.findUserById(userId);
+    }
+
+    @UseGuards(AuthGuard, RolesGuard)
+    @Post('update-profile')
+    @Roles(Role.User, Role.Admin)
+    @HttpCode(HttpStatus.OK)
+    async updateProfileById (@Body() updateUserDto: UpdateUserDto, @Req() req: Request): Promise<User> {
+        let userId = req.user.id;
+
+        return await this.userService.updateProfileByUserId(updateUserDto, userId);
     }
 
     @UseGuards(AuthGuard, RolesGuard)
