@@ -121,10 +121,43 @@ export class UsersService {
                 ...updateUserDto
             })
         } catch (err) {
-
+            console.error(err)
+            throw new BadRequestException('Cannot update user profile')
         }
 
         return userUpdate
+    }
+
+    async getListUser (): Promise<any> {
+        let listUser: any
+        let listUserReshaped: any
+        try {
+            const query = this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.userRoles', 'userRole')
+            .leftJoinAndSelect('userRole.role', 'role')
+            .select(['user.id', 'user.first_name', 'user.last_name', 'user.is_active', 'userRole', 'role.name'])
+
+            listUser = await query.getMany()
+
+
+            listUserReshaped = listUser.map(user => ({
+                id: user.id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                is_active: user.is_active,
+                userRoles: user.userRoles.map(userRole => ({
+                    role: {
+                        name: userRole.role.name
+                    }
+                }))
+            }))
+        } catch (err) {
+            console.error(err)
+            throw new BadRequestException('Cannot get user list')
+        }
+
+        return listUserReshaped
     }
 
 }
