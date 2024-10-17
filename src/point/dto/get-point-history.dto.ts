@@ -1,7 +1,12 @@
-import { IsDate, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsOptional, IsString, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GetPointHistoryDto {
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  userId?: number;
+
   @IsOptional()
   @Type(() => Date)
   @IsDate()

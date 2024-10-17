@@ -136,13 +136,22 @@ export class UsersService {
             .createQueryBuilder('user')
             .leftJoinAndSelect('user.userRoles', 'userRole')
             .leftJoinAndSelect('userRole.role', 'role')
-            .select(['user.id', 'user.first_name', 'user.last_name', 'user.is_active', 'userRole', 'role.name'])
+            .select([
+                'user.id', 
+                'user.first_name', 
+                'user.email', 
+                'user.last_name', 
+                'user.is_active', 
+                'userRole', 
+                'role.name'
+            ])
 
             listUser = await query.getMany()
 
 
             listUserReshaped = listUser.map(user => ({
                 id: user.id,
+                email: user.email,
                 first_name: user.first_name,
                 last_name: user.last_name,
                 is_active: user.is_active,
@@ -159,5 +168,33 @@ export class UsersService {
 
         return listUserReshaped
     }
+
+    async getUserProfileByUserId (id: number ): Promise<any> {
+        let userProfile: any
+
+        try {
+            const query = this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.loyaltyPoints', 'loyaltyPoint')
+            .where('user.id = :id', { id: id })
+            .select([
+                'user.id', 
+                'user.first_name', 
+                'user.email', 
+                'user.last_name', 
+                'user.is_active',
+                'loyaltyPoint.total_points'
+            ])
+
+            userProfile = await query.getOne()
+        } catch (err) {
+            console.error(err)
+            throw new BadRequestException('Cannot get user profile')
+        }
+
+        return userProfile
+    }
+
+    async 
 
 }

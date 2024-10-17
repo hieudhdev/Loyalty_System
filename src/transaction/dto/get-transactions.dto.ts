@@ -1,17 +1,22 @@
-import { IsDate, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsOptional, IsString, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GetTransactionsDto {
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  startDate?: Date;
+    @IsNumber()
+    @IsOptional()
+    @Type(() => Number)
+    userId?: number;
 
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  endDate?: Date;
+    @IsOptional()
+    @Type(() => Date)
+    @IsDate()
+    startDate?: Date;
 
-  @IsString()
-  order?: 'ASC' | 'DESC';
+    @IsOptional()
+    @Type(() => Date)
+    @IsDate()
+    endDate?: Date;
+
+    @IsString()
+    order?: 'ASC' | 'DESC';
 }

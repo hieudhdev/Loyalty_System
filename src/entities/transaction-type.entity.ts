@@ -12,6 +12,9 @@ export class TransactionType {
   @Column()
   description: string;
 
+  @Column()
+  min_amount: number;
+
   @Column('decimal')
   points_ratio: number;
 
