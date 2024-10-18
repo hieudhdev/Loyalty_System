@@ -122,4 +122,20 @@ export class AuthService {
         }
     }
 
+    async logout (@Res({ passthrough: true }) res: Response): Promise<any> {
+        try {
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                // secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                path: '/',
+            });
+
+            return { message: 'Logout successfull'}
+        } catch (err) {
+            console.error(err);
+            throw new BadRequestException('Logout failed');
+        }
+    }
+
 }
