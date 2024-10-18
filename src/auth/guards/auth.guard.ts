@@ -31,38 +31,41 @@ export class AuthGuard implements CanActivate {
         if (!accessToken) throw new UnauthorizedException();
         
         try {
-            const payload = await this.jwtService.verifyAsync(accessToken, {
-                secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET')
-            });
+            const payload = await this.verifyToken(accessToken)
+            await this.attachUserRoles(request, payload)
 
-            // find roles of user
-            const roles = await this.roleRepository
-                .createQueryBuilder('role')
-                .innerJoin('role.userRoles', 'userRole')
-                .innerJoin('userRole.user', 'user')
-                .where('user.id = :userId', { userId: payload.id })
-                .getMany();
-
-            request['user'] = {
-                ...payload,
-                role: roles.map(role => role.name)
-            };
-
-        } catch {
-            try {
-                await this.authService.genAccessTokenByRefreshToken(request)
-                return true;
-            } catch (err) {
-                console.error(err);
-                throw new UnauthorizedException('login session is expried!, pls login again');
+            return true
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                throw new UnauthorizedException('Access token expired');
             }
+            throw new UnauthorizedException('Invalid token');
         }
-
-        return true;
     }
 
     private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;
     }
+
+    private async verifyToken(token: string): Promise<any> {
+        return await this.jwtService.verifyAsync(token, {
+            secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET')
+        });
+    }
+
+    private async attachUserRoles(request: any, payload: any): Promise<void> {
+        const roles = await this.roleRepository
+            .createQueryBuilder('role')
+            .innerJoin('role.userRoles', 'userRole')
+            .innerJoin('userRole.user', 'user')
+            .where('user.id = :userId', { userId: payload.id })
+            .getMany();
+
+        request['user'] = {
+            ...payload,
+            role: roles.map(role => role.name)
+        };
+    }
+
 }
