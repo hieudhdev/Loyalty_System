@@ -3,13 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Transaction } from 'src/entities/transaction.entity';
 import { Repository } from 'typeorm';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
+import { TransactionType } from 'src/entities/transaction-type.entity';
+import { CreateTransactionTypeDto } from './dto/create-transaction-type.dto'
 
 @Injectable()
 export class TransactionService {
 
     constructor(
         @InjectRepository(Transaction)
-        private readonly transactionRepository: Repository<Transaction>
+        private readonly transactionRepository: Repository<Transaction>,
+        @InjectRepository(TransactionType)
+        private readonly transactionTypeRepository: Repository<TransactionType>,
     ) {}
 
     async getTransactionByUserId (getTransactionsDto: GetTransactionsDto, id: number): Promise<any> {
@@ -91,6 +95,24 @@ export class TransactionService {
         }
 
         return transactions
+    }
+
+    async createTransactionType (createTransactionTypeDto: CreateTransactionTypeDto): Promise<any>{
+        let newTransactionType: any
+
+        try {
+            const transactionType = this.transactionTypeRepository.create({
+                ...createTransactionTypeDto
+            })
+
+            newTransactionType = await this.transactionTypeRepository.save(transactionType)
+            
+        } catch (error) {
+            console.error(error)
+            throw new BadRequestException('Cannot create transaction type')
+        }
+
+        return newTransactionType
     }
 
 }

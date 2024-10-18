@@ -8,6 +8,8 @@ import {
     HttpCode,
     HttpStatus,
     Query,
+    Body,
+    Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/auth/roles/role.decorator';
@@ -19,6 +21,7 @@ import { GetTransactionsDto } from '../transaction/dto/get-transactions.dto';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { GetPointHistoryDto } from 'src/point/dto/get-point-history.dto';
 import { PointService } from 'src/point/point.service';
+import { CreateTransactionTypeDto } from '../transaction/dto/create-transaction-type.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -85,4 +88,12 @@ export class AdminController {
         return await this.pointService.getPointHistorySystem(getPointHistoryDto)    
     }
 
+    @UseGuards(AuthGuard, RolesGuard)
+    @Post('create-transaction-type')
+    @Roles(Role.Admin)
+    @HttpCode(HttpStatus.FOUND)
+    async createTransactionType (@Body() createTransactionTypeDto: CreateTransactionTypeDto): Promise<any> {
+
+        return await this.transactionService.createTransactionType(createTransactionTypeDto)
+    }
 }
