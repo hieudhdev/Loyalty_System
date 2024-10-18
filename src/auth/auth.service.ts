@@ -47,20 +47,23 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    async genAccessTokenByRefreshToken (@Req() req: Request): Promise<string> {
+    async genAccessTokenByRefreshToken (@Req() req: Request): Promise<{ accessToken: string }> {
         const refreshToken = req.cookies['refreshToken'];
 
         if (!refreshToken) {
-            throw new UnauthorizedException('Refresh token not found, pls login again');
+            throw new UnauthorizedException('Refresh token not found, please login again');
         }
 
-        let payload;
+        let payload: any;
         try {
             payload = await this.jwtService.verifyAsync(refreshToken, {
                 secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
             });
         } catch (error) {
-            throw new UnauthorizedException('Invalid or expired refresh token, pls login again');
+            if (error.name === 'TokenExpiredError') {
+                throw new UnauthorizedException('Login session has expired. Please login again');
+            }
+            throw new UnauthorizedException('Invalid refresh token. Please login again.');
         }
 
         const userExists = await this.usersService.findUserById(payload.userId);
@@ -70,14 +73,14 @@ export class AuthService {
         }
 
         const accessToken = await this.jwtService.signAsync(
-            { ...payload }, 
+            { email: userExists.email, id: userExists.id }, 
             {
                 secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
                 expiresIn: '30m',
             },
         );
 
-        return accessToken; 
+        return { accessToken }; 
     }
 
     async emailRegister (registerDto: AuthEmailRegisterDto): Promise<void> {
