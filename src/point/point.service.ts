@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { LoyaltyPoint } from 'src/entities/loyalty-point.entity';
 import { LoyaltyPointHistory } from 'src/entities/loyalty-point-history.entity';
 import { GetPointHistoryDto } from './dto/get-point-history.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class PointService {
@@ -65,7 +66,6 @@ export class PointService {
             throw new BadRequestException('Cannot get user points history')
         }
 
-
         return points
     }
     
@@ -110,6 +110,54 @@ export class PointService {
         }
 
         return points
+    }
+
+    @Cron(CronExpression.EVERY_30_SECONDS)
+    async handlePointHistory (): Promise<any> {
+        const unprocessedPointHistory = await this.pointHistoryRepository
+        .createQueryBuilder('pointHistory')
+        .leftJoinAndSelect('pointHistory.transaction', 'transaction')
+        .leftJoinAndSelect('transaction.user', 'user')
+        .select([
+            'pointHistory.id',
+            'pointHistory.points_change_type',
+            'pointHistory.points',
+            'pointHistory.point_status',
+            'transaction',
+            'user'
+        ])
+        .where('pointHistory.point_status = :status', { status: false })
+        .getMany()
+
+        for (const pointHistory of unprocessedPointHistory) {
+            await this.processPointHistory(pointHistory);
+        }
+    }
+
+    async processPointHistory (pointHistory: any): Promise<void> {
+        const { points_change_type, points, point_status } = pointHistory
+        const userId = pointHistory.transaction.user.id
+
+        // handle plus or substract points
+        let pointsProcessed: number = 0
+        if (!points_change_type) pointsProcessed = points * -1
+        else pointsProcessed = points
+
+        // update user point
+        await this.pointRepository
+        .createQueryBuilder()
+        .update(LoyaltyPoint)
+        .set({ total_points: () => `total_points + ${pointsProcessed}` })
+        .where('userId = :userId', { userId: userId })
+        .execute()
+
+        // update pointHistory.point_status
+        await this.pointHistoryRepository
+        .createQueryBuilder()
+        .update(LoyaltyPointHistory)
+        .set({ point_status: true })
+        .where('id = :id', { id: pointHistory.id })
+        .execute()
     }
 
 }

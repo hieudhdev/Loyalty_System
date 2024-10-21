@@ -179,7 +179,6 @@ export class TransactionService {
         if (amount >= min_amount && !point_status) {
             // calculator point
             const bonusPoint = Math.round(amount * points_ratio_float)
-            console.log(bonusPoint)
 
             // save point history
             const newPointHistory = this.pointHistoryRepository.create({
@@ -189,7 +188,6 @@ export class TransactionService {
                 transaction: transaction
             })
             await this.pointHistoryRepository.save(newPointHistory)
-            console.log('newPointHistory have been added')
 
             // update transaction.point_status = true
             await this.transactionRepository
@@ -198,7 +196,6 @@ export class TransactionService {
             .set({ point_status: true })
             .where('id = :id', { id: transaction.id })
             .execute()
-            console.log('Update transaction points status')
 
         } else {
             // update transaction.point_status = true

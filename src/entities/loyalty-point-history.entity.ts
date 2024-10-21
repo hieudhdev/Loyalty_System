@@ -15,6 +15,9 @@ export class LoyaltyPointHistory {
   @Column()
   points: number;
 
+  @Column({ default: false })
+  point_status: boolean;
+
   @Column()
   description: string;
 
