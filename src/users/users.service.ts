@@ -16,6 +16,8 @@ import { Role } from 'src/entities/role.entity';
 import { LoyaltyPoint } from 'src/entities/loyalty-point.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpgradeAdminDto } from './dto/upgrade-admin.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +30,8 @@ export class UsersService {
         @InjectRepository(UserRole)
         private readonly userRoleRepository: Repository<UserRole>,
         @InjectRepository(Role)
-        private readonly roleRepository: Repository<Role>
+        private readonly roleRepository: Repository<Role>,
+        private readonly configService: ConfigService,
     ) {}
 
     async findUserByEmail(email: string): Promise<User> {
@@ -195,5 +198,44 @@ export class UsersService {
         return userProfile
     }
 
+    async upgradeAdmin (upgradeAdminDto: UpgradeAdminDto, @Req() req: Request): Promise<any> {
+        const userId = req.user.id
+        const { admin_key_secret } = upgradeAdminDto
+        const ADMIN_KEY = this.configService.get<string>('ADMIN_KEY_SECRET')
+
+        try {
+            // check admin_key_secret
+            if (admin_key_secret !== ADMIN_KEY) throw new BadRequestException('admin_key_secret incorrect')
+
+            // find user 
+            const foundUser = await this.findUserById(userId)
+            if (!foundUser) throw new NotFoundException('User not found')
+
+            // find role = user
+            const foundRole = await this.roleRepository.findOne({
+                where: { name: "admin"}
+            })
+            if (!foundRole) throw new NotFoundException('Role not found')
+            
+            // find user role
+            const foundUserRole = await this.userRoleRepository.findOne({
+                where: { 
+                    user: { id: foundUser.id }, 
+                    role: { id: foundRole.id }
+                }
+            })
+            if (foundUserRole) throw new BadRequestException('User already a admin')
+            
+            const newUserRole = this.userRoleRepository.create({
+                user: foundUser,
+                role: foundRole
+            }) 
+            await this.userRoleRepository.save(newUserRole)
+
+        } catch (err) {
+            console.error(err)
+            throw new BadRequestException('Upgrade admin fail')
+        }
+    }
 
 }

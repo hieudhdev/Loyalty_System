@@ -25,6 +25,7 @@ import { Transaction } from 'src/entities/transaction.entity';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { GetTransactionsDto } from 'src/transaction/dto/get-transactions.dto'
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpgradeAdminDto } from './dto/upgrade-admin.dto'
 
 @Controller('user')
 export class UsersController {
@@ -83,6 +84,14 @@ export class UsersController {
         let userId = req.user.id;
 
         return await this.transactionService.getTransactionByUserId(getTransactionsDto, userId)
+    }
+
+    @UseGuards(AuthGuard, RolesGuard)
+    @Post('upgrade-admin')
+    @Roles(Role.User)
+    @HttpCode(HttpStatus.OK)
+    async upgradeAdminAccount (@Body() upgradeAdminDto: UpgradeAdminDto, @Req() req: Request): Promise<any> {
+        return await this.userService.upgradeAdmin(upgradeAdminDto, req)
     }
 
 }
