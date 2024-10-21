@@ -9,6 +9,7 @@ import { AppDataSource } from './database/configs/database.config';
 import { User } from './entities/user.entity';
 import { PointModule } from './point/point.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TransactionModule } from './transaction/transaction.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => AppDataSource.options,
     }),
+    ScheduleModule.forRoot(),
     AuthModule,  
     UsersModule, PointModule, TransactionModule,
   ],

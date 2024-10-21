@@ -7,6 +7,8 @@ import { TransactionType } from 'src/entities/transaction-type.entity';
 import { CreateTransactionTypeDto } from './dto/create-transaction-type.dto'
 import { UsersService } from 'src/users/users.service';
 import { CreateTransactionMockDto } from './dto/create-transaction-mock.dto'
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { LoyaltyPointHistory } from 'src/entities/loyalty-point-history.entity';
 
 @Injectable()
 export class TransactionService {
@@ -16,6 +18,8 @@ export class TransactionService {
         private readonly transactionRepository: Repository<Transaction>,
         @InjectRepository(TransactionType)
         private readonly transactionTypeRepository: Repository<TransactionType>,
+        @InjectRepository(LoyaltyPointHistory)
+        private readonly pointHistoryRepository: Repository<LoyaltyPointHistory>,
         private readonly usersService: UsersService
     ) {}
 
@@ -144,4 +148,67 @@ export class TransactionService {
         }
     }
 
+    // Cronjob transaction -> point history
+    @Cron(CronExpression.EVERY_30_SECONDS)
+    async handleTransactions (): Promise<void> {
+        const unprocessedTransactions = await this.transactionRepository
+        .createQueryBuilder('transaction')
+        .leftJoinAndSelect('transaction.transactionType', 'transactionType')
+        .select([
+            'transaction.id',
+            'transaction.amount',
+            'transaction.point_status',
+            'transactionType.min_amount',
+            'transactionType.points_ratio',
+            'transactionType.description'
+        ])
+        .where('transaction.point_status = :status', { status: false })
+        .getMany()
+
+        for (const transaction of unprocessedTransactions) {
+            await this.processTransaction(transaction);
+        }
+    }
+
+    async processTransaction (transaction: any): Promise<void> {
+        const { amount, point_status, transactionType } = transaction
+        const { min_amount, points_ratio, description } = transactionType
+        const points_ratio_float = parseFloat(points_ratio)
+
+        // check min_amount
+        if (amount >= min_amount && !point_status) {
+            // calculator point
+            const bonusPoint = Math.round(amount * points_ratio_float)
+            console.log(bonusPoint)
+
+            // save point history
+            const newPointHistory = this.pointHistoryRepository.create({
+                points_change_type: 1,
+                points: bonusPoint,
+                description: description,
+                transaction: transaction
+            })
+            await this.pointHistoryRepository.save(newPointHistory)
+            console.log('newPointHistory have been added')
+
+            // update transaction.point_status = true
+            await this.transactionRepository
+            .createQueryBuilder()
+            .update(Transaction)
+            .set({ point_status: true })
+            .where('id = :id', { id: transaction.id })
+            .execute()
+            console.log('Update transaction points status')
+
+        } else {
+            // update transaction.point_status = true
+            await this.transactionRepository
+            .createQueryBuilder()
+            .update(Transaction)
+            .set({ point_status: true })
+            .where('id = :id', { id: transaction.id })
+            .execute()
+        }
+
+    }
 }

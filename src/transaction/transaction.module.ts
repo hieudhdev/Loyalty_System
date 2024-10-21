@@ -9,6 +9,7 @@ import { User } from 'src/entities/user.entity';
 import { LoyaltyPoint } from 'src/entities/loyalty-point.entity';
 import { UserRole } from 'src/entities/user-role.entity';
 import { Role } from 'src/entities/role.entity';
+import { LoyaltyPointHistory } from 'src/entities/loyalty-point-history.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { Role } from 'src/entities/role.entity';
       User, 
       LoyaltyPoint, 
       UserRole, 
-      Role
+      Role,
+      LoyaltyPointHistory
     ]),
   ],
   providers: [TransactionService, UsersService],

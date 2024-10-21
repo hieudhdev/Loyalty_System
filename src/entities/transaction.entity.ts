@@ -11,6 +11,9 @@ export class Transaction {
   @Column()
   amount: number;
 
+  @Column({ default: false })
+  point_status: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 
