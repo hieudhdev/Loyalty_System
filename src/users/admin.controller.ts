@@ -22,6 +22,7 @@ import { TransactionService } from 'src/transaction/transaction.service';
 import { GetPointHistoryDto } from 'src/point/dto/get-point-history.dto';
 import { PointService } from 'src/point/point.service';
 import { CreateTransactionTypeDto } from '../transaction/dto/create-transaction-type.dto';
+import { CreateTransactionMockDto } from 'src/transaction/dto/create-transaction-mock.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -96,4 +97,14 @@ export class AdminController {
 
         return await this.transactionService.createTransactionType(createTransactionTypeDto)
     }
+
+    @UseGuards(AuthGuard, RolesGuard)
+    @Post('create-transaction-mock')
+    @Roles(Role.Admin)
+    @HttpCode(HttpStatus.CREATED)
+    async createTransactionMock (@Body() createTransactionMockDto: CreateTransactionMockDto): Promise<any> {
+
+        return await this.transactionService.createTransactionMock(createTransactionMockDto)
+    }
+
 }

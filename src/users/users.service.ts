@@ -195,6 +195,5 @@ export class UsersService {
         return userProfile
     }
 
-    async 
 
 }

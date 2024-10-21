@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { GetTransactionsDto } from './dto/get-transactions.dto';
 import { TransactionType } from 'src/entities/transaction-type.entity';
 import { CreateTransactionTypeDto } from './dto/create-transaction-type.dto'
+import { UsersService } from 'src/users/users.service';
+import { CreateTransactionMockDto } from './dto/create-transaction-mock.dto'
 
 @Injectable()
 export class TransactionService {
@@ -14,6 +16,7 @@ export class TransactionService {
         private readonly transactionRepository: Repository<Transaction>,
         @InjectRepository(TransactionType)
         private readonly transactionTypeRepository: Repository<TransactionType>,
+        private readonly usersService: UsersService
     ) {}
 
     async getTransactionByUserId (getTransactionsDto: GetTransactionsDto, id: number): Promise<any> {
@@ -113,6 +116,32 @@ export class TransactionService {
         }
 
         return newTransactionType
+    }
+
+    async createTransactionMock (createTransactionMockDto: CreateTransactionMockDto): Promise<any> {
+        const { userId, transactionTypeId, amount } = createTransactionMockDto
+        
+        try {
+            const foundUser = await this.usersService.findUserById(userId)
+            if (!foundUser) throw new BadRequestException('User not found')
+
+            const foundTransactionType = await this.transactionTypeRepository.findOne({
+                where: { id: transactionTypeId }
+            })    
+            if (!foundTransactionType) throw new BadRequestException('Transaction type not found')
+
+            const newTransaction = this.transactionRepository.create({
+                amount: amount,
+                user: foundUser,
+                transactionType: foundTransactionType
+            })
+            const newTransactionSaved = await this.transactionRepository.save(newTransaction)
+
+            return newTransactionSaved
+        } catch (error) {
+            console.error(error)
+            throw new BadRequestException('Cannot create transaction (mock)')
+        }
     }
 
 }
