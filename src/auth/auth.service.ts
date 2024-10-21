@@ -66,7 +66,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token. Please login again.');
         }
 
-        const userExists = await this.usersService.findUserById(payload.userId);
+        const userExists = await this.usersService.findUserById(payload.id);
 
         if (!userExists) {
             throw new BadRequestException('User no longer exists');
