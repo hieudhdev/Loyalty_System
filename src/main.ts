@@ -3,12 +3,31 @@ import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { AppDataSource } from './database/configs/database.config';
 import * as cookieParser from 'cookie-parser';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 const app_port = process.env.PORT || 8080
 
 async function bootstrap() {
   // init app
   const app = await NestFactory.create(AppModule);
+
+  // swagger config
+  const config = new DocumentBuilder()
+    .setTitle('Loyalty System - API Documentation')
+    .setDescription('API description')
+    .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'Bearer',
+      bearerFormat: 'JWT',
+      name: 'JWT',
+      description: 'Enter JWT token',
+      in: 'header',
+    }, 'access-token')
+    .build();
+    
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Cookies config
   app.use(cookieParser());

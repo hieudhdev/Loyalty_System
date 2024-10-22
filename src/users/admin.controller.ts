@@ -23,7 +23,9 @@ import { GetPointHistoryDto } from 'src/point/dto/get-point-history.dto';
 import { PointService } from 'src/point/point.service';
 import { CreateTransactionTypeDto } from '../transaction/dto/create-transaction-type.dto';
 import { CreateTransactionMockDto } from 'src/transaction/dto/create-transaction-mock.dto';
+import { ApiTags, ApiOperation, ApiBody, ApiQuery, ApiParam } from '@nestjs/swagger';
 
+@ApiTags('Admin')
 @Controller('admin')
 export class AdminController {
 
@@ -35,6 +37,9 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('list-user')
+    @ApiOperation({
+        summary: 'get list all user'
+    })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getListUsers (): Promise<any> {
@@ -43,6 +48,10 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-profile/:id')
+    @ApiOperation({
+        summary: 'Get specific user profile'
+    })
+    @ApiParam({ name: 'id', type: String, example: 8})
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getUserProfile (@Param('id') id: number | string): Promise<any> {
@@ -53,6 +62,13 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-transaction')
+    @ApiOperation({
+        summary: 'Get specific user transaction'
+    })
+    @ApiQuery({ name: 'userId', type: Number, example: '9' })
+    @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
+    @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
+    @ApiQuery({ name: 'order', type: String, example: 'DESC' })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getUserTransactions (@Query() getTransactionsDto: GetTransactionsDto): Promise<any> {
@@ -63,6 +79,13 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-point-history')
+    @ApiOperation({
+        summary: 'Get specific user point history'
+    })
+    @ApiQuery({ name: 'userId', type: Number, example: '9' })
+    @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
+    @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
+    @ApiQuery({ name: 'order', type: String, example: 'DESC' })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getUserPointHistory (@Query() getPointHistoryDto: GetPointHistoryDto): Promise<any> {
@@ -73,6 +96,12 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('transaction-system')
+    @ApiOperation({
+        summary: 'Get transactions of whole system'
+    })
+    @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
+    @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
+    @ApiQuery({ name: 'order', type: String, example: 'DESC' })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getTransactionSystem (@Query() getTransactionDto: GetTransactionsDto): Promise<any> {
@@ -82,6 +111,12 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('point-system')
+    @ApiOperation({
+        summary: 'Get point histories of whole system'
+    })
+    @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
+    @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
+    @ApiQuery({ name: 'order', type: String, example: 'DESC' })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getPointHistorySystem (@Query() getPointHistoryDto: GetPointHistoryDto): Promise<any> {
@@ -91,6 +126,23 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Post('create-transaction-type')
+    @ApiOperation({
+        summary: 'Create new transaction type (point rules)'
+    })
+    @ApiBody({
+        type: CreateTransactionTypeDto,
+        examples: {
+            transaction_type_1: {
+                value: {
+                    name: 'buy item',
+                    description: 'customer buy item',
+                    points_ratio: 0.3,
+                    type: 'BuyItem',
+                    min_amount: 1000
+                } as CreateTransactionTypeDto
+            }
+        }
+    })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async createTransactionType (@Body() createTransactionTypeDto: CreateTransactionTypeDto): Promise<any> {
@@ -100,6 +152,21 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Post('create-transaction-mock')
+    @ApiOperation({
+        summary: 'Mock create transaction for testing'
+    })
+    @ApiBody({
+        type: CreateTransactionMockDto,
+        examples: {
+            transaction_1: {
+                value: {
+                    amount: 1999,
+                    userId: 9,
+                    transactionTypeId: 1
+                } as CreateTransactionMockDto
+            }
+        }
+    })
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.CREATED)
     async createTransactionMock (@Body() createTransactionMockDto: CreateTransactionMockDto): Promise<any> {

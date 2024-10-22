@@ -18,6 +18,7 @@ import { UserRole } from 'src/entities/user-role.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpgradeAdminDto } from './dto/upgrade-admin.dto';
 import { ConfigService } from '@nestjs/config';
+import { first } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -69,7 +70,7 @@ export class UsersService {
         return userRoles
     }
 
-    async create (createUserDto: CreateUserDto): Promise<User> {
+    async create (createUserDto: CreateUserDto): Promise<any> {
         // check email existed?
         if (createUserDto.email) {
             const foundUser = await this.userRepository.findOneBy({email: createUserDto.email})
@@ -113,7 +114,15 @@ export class UsersService {
         })
         await this.pointRepository.save(newUserPoint)
 
-        return newUserSaved
+        return {
+            id: newUserSaved.id,
+            email: newUserSaved.email,
+            first_name: newUserSaved.first_name,
+            last_name: newUserSaved.last_name,
+            phone_number: newUserSaved.phone_number,
+            is_active: newUserSaved.is_active,
+            created_at: newUserSaved.created_at
+        }
     }
 
     async updateProfileByUserId (updateUserDto: UpdateUserDto, id: number): Promise<User>{

@@ -83,8 +83,8 @@ export class AuthService {
         return { accessToken }; 
     }
 
-    async emailRegister (registerDto: AuthEmailRegisterDto): Promise<void> {
-        const user = await this.usersService.create({
+    async emailRegister (registerDto: AuthEmailRegisterDto): Promise<any> {
+        return await this.usersService.create({
             ...registerDto,
         })
     }
