@@ -83,6 +83,12 @@ export class UsersService {
             passwordHash = await bcrypt.hash(createUserDto.password, 10);
         }
         
+        // find role = user
+        const foundRole = await this.roleRepository.findOne({
+            where: { name: "user"}
+        })
+        if (!foundRole) throw new NotFoundException('Role not found')
+
         // new user
         const newUser = this.userRepository.create({
             email: createUserDto.email,
@@ -93,12 +99,6 @@ export class UsersService {
             is_active: true,
         });
         const newUserSaved = await this.userRepository.save(newUser);
-
-        // find role = user
-        const foundRole = await this.roleRepository.findOne({
-            where: { name: "user"}
-        })
-        if (!foundRole) throw new NotFoundException('Role not found')
 
         // create userRole (role for user)
         const newUserRole = this.userRoleRepository.create({
