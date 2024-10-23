@@ -23,7 +23,7 @@ import { GetPointHistoryDto } from 'src/point/dto/get-point-history.dto';
 import { PointService } from 'src/point/point.service';
 import { CreateTransactionTypeDto } from '../transaction/dto/create-transaction-type.dto';
 import { CreateTransactionMockDto } from 'src/transaction/dto/create-transaction-mock.dto';
-import { ApiTags, ApiOperation, ApiBody, ApiQuery, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -37,6 +37,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('list-user')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'get list all user'
     })
@@ -48,6 +49,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-profile/:id')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Get specific user profile'
     })
@@ -62,6 +64,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-transaction')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Get specific user transaction'
     })
@@ -79,6 +82,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('user-point-history')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Get specific user point history'
     })
@@ -96,6 +100,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('transaction-system')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Get transactions of whole system'
     })
@@ -111,6 +116,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Get('point-system')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Get point histories of whole system'
     })
@@ -126,6 +132,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Post('create-transaction-type')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Create new transaction type (point rules)'
     })
@@ -152,6 +159,7 @@ export class AdminController {
 
     @UseGuards(AuthGuard, RolesGuard)
     @Post('create-transaction-mock')
+    @ApiBearerAuth('access-token')
     @ApiOperation({
         summary: 'Mock create transaction for testing'
     })
