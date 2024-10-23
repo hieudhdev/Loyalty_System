@@ -53,7 +53,7 @@ export class AdminController {
     @ApiOperation({
         summary: 'Get specific user profile'
     })
-    @ApiParam({ name: 'id', type: String, example: 8})
+    @ApiParam({ name: 'id', type: String, example: 1})
     @Roles(Role.Admin)
     @HttpCode(HttpStatus.FOUND)
     async getUserProfile (@Param('id') id: number | string): Promise<any> {
@@ -68,7 +68,7 @@ export class AdminController {
     @ApiOperation({
         summary: 'Get specific user transaction'
     })
-    @ApiQuery({ name: 'userId', type: Number, example: '9' })
+    @ApiQuery({ name: 'userId', type: Number, example: '1' })
     @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
     @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
     @ApiQuery({ name: 'order', type: String, example: 'DESC' })
@@ -86,7 +86,7 @@ export class AdminController {
     @ApiOperation({
         summary: 'Get specific user point history'
     })
-    @ApiQuery({ name: 'userId', type: Number, example: '9' })
+    @ApiQuery({ name: 'userId', type: Number, example: '1' })
     @ApiQuery({ name: 'startDate', type: Date, example: '2024-10-01' })
     @ApiQuery({ name: 'endDate', type: Date, example: '2024-10-31' })
     @ApiQuery({ name: 'order', type: String, example: 'DESC' })
@@ -181,7 +181,7 @@ export class AdminController {
             transaction_1: {
                 value: {
                     amount: 1999,
-                    userId: 9,
+                    userId: 1,
                     transactionTypeId: 1
                 } as CreateTransactionMockDto
             }
