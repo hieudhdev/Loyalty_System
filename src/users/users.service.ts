@@ -241,6 +241,10 @@ export class UsersService {
             }) 
             await this.userRoleRepository.save(newUserRole)
 
+            return {
+                message: 'upgrade admin success'
+            }
+
         } catch (err) {
             console.error(err)
             throw new BadRequestException('Upgrade admin fail')

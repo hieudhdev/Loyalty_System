@@ -122,6 +122,17 @@ export class TransactionService {
         return newTransactionType
     }
 
+    async getTransactionType (): Promise<any>{
+        try {
+            const listTransactionType = this.transactionTypeRepository.find()
+
+            return listTransactionType
+        } catch (error) {
+            console.error(error)
+            throw new BadRequestException('Cannot get transaction type')
+        }
+    }
+
     async createTransactionMock (createTransactionMockDto: CreateTransactionMockDto): Promise<any> {
         const { userId, transactionTypeId, amount } = createTransactionMockDto
         

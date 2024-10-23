@@ -158,6 +158,18 @@ export class AdminController {
     }
 
     @UseGuards(AuthGuard, RolesGuard)
+    @Get('get-transaction-type')
+    @ApiBearerAuth('access-token')
+    @ApiOperation({
+        summary: 'Get transaction types (point rules)'
+    })
+    @Roles(Role.Admin)
+    @HttpCode(HttpStatus.FOUND)
+    async getTransactionType (): Promise<any> {
+        return await this.transactionService.getTransactionType()
+    }
+
+    @UseGuards(AuthGuard, RolesGuard)
     @Post('create-transaction-mock')
     @ApiBearerAuth('access-token')
     @ApiOperation({
